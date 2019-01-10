@@ -44,6 +44,7 @@ class SampleApp(tk.Tk):
 
         niveles = [[1,"nivel1.png","nivel1.txt",[2]],[2,"nivel2.png","nivel2.txt",[5,7]],[3,"nivel3.png","nivel3.txt", [15]]]
         self.frames = {}
+        self.resizable(False,False)
         for F in (StartPage,LevelSelectPage, RulePage):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
@@ -53,6 +54,7 @@ class SampleApp(tk.Tk):
         for nv in niveles:
             page_name = "PlayPage" + str(nv[0])
             frame = PlayPage(parent=container, controller=self, imagen = nv[1], datos = nv[2], posZombies = nv[3])
+            
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             
@@ -212,12 +214,19 @@ class RulePage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 2", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
-        button.pack()
+        
+        ph = ImageTk.PhotoImage(Image.open("rules.png"))
 
+        label = tk.Label(self, image=ph, font=controller.title_font)
+        label.image = ph  # need
+        label.place(x=0,y=0)
+        label.pack(side="top", fill="both", pady=10)
+
+        homeButton = tk.Button(self, bg="light blue", text="HOME", command=lambda: controller.show_frame("StartPage"))
+        #tutorialButton = tk.Button(self, bg="PaleGreen1", text="TUTORIAL",command=lambda: controller.show_frame("TutorialPage"))
+        #playButton.pack(side="left", expand="True")
+        #tutorialButton.pack()
+        homeButton.pack(side="right", expand="True")
 
 if __name__ == "__main__":
     app = SampleApp()
