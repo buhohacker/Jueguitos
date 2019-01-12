@@ -3,6 +3,7 @@ from tkinter import font  as tkfont # python 3
 from PIL import Image, ImageTk
 from tkinter.messagebox import showinfo
 from functools import partial
+import time
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 """extra functions"""
@@ -33,7 +34,7 @@ class SampleApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
-
+        self.title("Zombis & Supervivientes")
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
@@ -42,7 +43,7 @@ class SampleApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        niveles = [[1,"nivel1.png","nivel1.txt",[2]],[2,"nivel2.png","nivel2.txt",[5,7]],[3,"nivel3.png","nivel3.txt", [15]]]
+        niveles = [[1,"nivel1.png","nivel1.txt",[2]],[2,"nivel2.png","nivel2.txt",[11,12]],[3,"nivel3.png","nivel3.txt", [11,12]]]
         self.frames = {}
         self.resizable(False,False)
         for F in (StartPage,LevelSelectPage, RulePage):
@@ -53,7 +54,7 @@ class SampleApp(tk.Tk):
             
         for nv in niveles:
             page_name = "PlayPage" + str(nv[0])
-            frame = PlayPage(parent=container, controller=self, imagen = nv[1], datos = nv[2], posZombies = nv[3])
+            frame = PlayPage(parent=container, controller=self, number = nv[0], imagen = nv[1], datos = nv[2], posZombies = nv[3])
             
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -122,14 +123,14 @@ class LevelSelectPage(tk.Frame):
 class PlayPage(tk.Frame):
     
     
-    def __init__(self, parent, controller, imagen, datos, posZombies):
+    def __init__(self, parent, controller, number, imagen, datos, posZombies):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         
         
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
+        label = tk.Label(self, text="Este es el nivel " + str(number), font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
+        button = tk.Button(self, text="Volver al menu",
                            command=lambda: controller.show_frame("StartPage"))
         button.pack()
         
@@ -140,10 +141,19 @@ class PlayPage(tk.Frame):
         self.crearNodos(datos)
         
         self.survivor = -1#posicion del superviviente
-        self.zombi = posZombies# posicion del/de los zombie/s
+        self.zombiOr = posZombies# posicion del/de los zombie/s
+        self.zombi = []
+        self.resetZombie()
+    
+    def resetZombie(self):
+        if self.zombi != []:
+            for z in self.zombi:
+                self.nodos[z].configure(image = self.imNode)
+                
+        self.zombi = self.zombiOr.copy()# posicion del/de los zombie/s
         for z in self.zombi:
             self.nodos[z].configure(image = self.imZombie)
-            
+        
     def crearNodos(self, datos):
         self.imNode = ImageTk.PhotoImage(Image.open("nodo.png"))
         self.imZombie = ImageTk.PhotoImage(Image.open("zombie.png"))
@@ -178,6 +188,7 @@ class PlayPage(tk.Frame):
                     while j < l and not moved and sorth != []:
                         newpos = sorth[j][1]
                         if newpos not in self.zombi:# la casilla no esta ocupada ya por otro zombie
+                            time.sleep(0.3)
                             self.nodos[self.zombi[z]].configure(image = self.imNode)
                             self.nodos[newpos].configure(image = self.imZombie)
                             self.zombi[z] = newpos
@@ -193,19 +204,24 @@ class PlayPage(tk.Frame):
                     blocked += 1 if i in self.zombi else 0
                     
                 if blocked == len(self.adyacencias[self.survivor]):
-                    showinfo("Message", "The Survivor is trapped by zombies... ") 
+                    showinfo("Message", "El superviviente esta atrapado por zombis... ")
+                    time.sleep(0.5)
+                    self.resetZombie()
+                    self.nodos[self.survivor].configure(image = self.imNode)
+                    self.survivor = -1
                     
             else:
-               showinfo("Message", "Move only to an adyacent node") 
+               showinfo("Message", "Muevete solo a un nodo adyacente") 
                return
         else:
-           showinfo("Message", "You can't select a zombie node") 
+           showinfo("Message", "No te puedes mover a un nodo con Zombi") 
            return
        
         if self.survivor in self.zombi:
             self.survivor = -1
-            showinfo("Message", "Your survivor has died") 
-        
+            showinfo("Message", "Tu superviviente ha sido alcanzado por un Zombi...") 
+            time.sleep(0.5)
+            self.resetZombie()
     
         
         
@@ -222,7 +238,7 @@ class RulePage(tk.Frame):
         label.place(x=0,y=0)
         label.pack(side="top", fill="both", pady=10)
 
-        homeButton = tk.Button(self, bg="light blue", text="HOME", command=lambda: controller.show_frame("StartPage"))
+        homeButton = tk.Button(self, bg="light blue", text="Volver al Menu", command=lambda: controller.show_frame("StartPage"))
         #tutorialButton = tk.Button(self, bg="PaleGreen1", text="TUTORIAL",command=lambda: controller.show_frame("TutorialPage"))
         #playButton.pack(side="left", expand="True")
         #tutorialButton.pack()
