@@ -1,2 +1,2 @@
 # Jueguitos
-Repositorio para el proyecto de Zombies &amp; Survivors.
+Project game Zombies & Survivors.
